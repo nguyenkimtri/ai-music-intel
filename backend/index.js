@@ -9,7 +9,7 @@ const cors = require('cors');
 const fs = require('fs');
 
 const app = express();
-const port = process.env.PORT || 8000;
+const port = process.env.PORT || 5555;
 
 // Setup directories
 const uploadsDir = path.join(__dirname, '../uploads');
