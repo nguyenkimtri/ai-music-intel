@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Music Intel | SaaS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <style>
+        :root {
+            --primary: #00f2fe;
+            --secondary: #4facfe;
+            --bg: #0f172a;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background: var(--bg);
+            color: #fff;
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            background: radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 100%);
+            min-height: 100vh;
+        }
+
+        .navbar {
+            padding: 1.5rem 2rem;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+        }
+
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            margin-bottom: 2rem;
+        }
+
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover { border-color: var(--primary); background: rgba(0, 242, 254, 0.05); }
+
+        .btn-gradient {
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: #0f172a;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            width: 100%;
+            margin-top: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-gradient:hover { filter: brightness(1.1); transform: translateY(-2px); }
+
+        .input-group input {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: #fff;
+            margin-top: 1rem;
+            box-sizing: border-box;
+        }
+
+        .loader {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #FFF;
+            border-bottom-color: var(--primary);
+            border-radius: 50%;
+            display: inline-block;
+            animation: rotation 1s linear infinite;
+        }
+
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            padding: 1.5rem;
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .stat-value { font-family: 'Orbitron'; font-size: 1.8rem; color: var(--primary); }
+    </style>
+</head>
+<body x-data="musicApp()">
+    <nav class="navbar">
+        <div class="logo">AI MUSIC INTEL</div>
+        <div><span style="opacity: 0.5">BullMQ + Node + Python</span></div>
+    </nav>
+
+    <div class="container">
+        <div class="glass-card">
+            <h2 style="font-family: 'Orbitron'; text-align: center; margin-bottom: 2rem">Audio Intelligence Analysis</h2>
+            
+            <div class="upload-area" @click="$refs.fileInput.click()">
+                <div x-show="!file">
+                    <p>Click to upload audio or Drag & Drop</p>
+                </div>
+                <div x-show="file">
+                    <p style="color: var(--primary)" x-text="file.name"></p>
+                </div>
+                <input type="file" x-ref="fileInput" @change="file = $event.target.files[0]" style="display: none">
+            </div>
+
+            <div class="input-group">
+                <input type="text" x-model="youtubeUrl" placeholder="Or paste YouTube URL...">
+            </div>
+
+            <button class="btn-gradient" @click="submitJob()" :disabled="loading">
+                <span x-show="!loading">START ANALYSIS</span>
+                <span x-show="loading" class="loader"></span>
+            </button>
+        </div>
+
+        <template x-if="jobId">
+            <div class="glass-card">
+                <div style="text-align: center">
+                    <h3 style="margin-bottom: 1rem">Status: <span x-text="status.toUpperCase()" :style="status=='completed' ? 'color: var(--primary)' : 'color: #ff9f43'"></span></h3>
+                    
+                    <template x-if="status == 'completed' && result">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem">
+                            <div class="stat-card">
+                                <div style="font-size: 0.8rem; opacity: 0.5">KEY</div>
+                                <div class="stat-value" x-text="result.key"></div>
+                            </div>
+                            <div class="stat-card">
+                                <div style="font-size: 0.8rem; opacity: 0.5">BPM</div>
+                                <div class="stat-value" x-text="result.bpm"></div>
+                            </div>
+                            <div class="stat-card">
+                                <div style="font-size: 0.8rem; opacity: 0.5">SCALE</div>
+                                <div class="stat-value" x-text="result.scale" style="text-transform: capitalize"></div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template x-if="status == 'failed'">
+                        <p style="color: #ff4d4d" x-text="error"></p>
+                    </template>
+
+                    <div x-show="status == 'pending' || status == 'processing'" style="margin-top: 1rem">
+                        <div class="loader"></div>
+                        <p style="font-size: 0.8rem; opacity: 0.5; margin-top: 1rem">Processing your audio with AI... Please wait.</p>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <script>
+        function musicApp() {
+            return {
+                file: null,
+                youtubeUrl: '',
+                loading: false,
+                jobId: null,
+                status: '',
+                result: null,
+                error: '',
+
+                async submitJob() {
+                    if (!this.file && !this.youtubeUrl) return alert('Source required');
+                    this.loading = true;
+                    this.jobId = null;
+
+                    const formData = new FormData();
+                    if (this.file) formData.append('audio', this.file);
+                    if (this.youtubeUrl) formData.append('youtube_url', this.youtubeUrl);
+
+                    try {
+                        const res = await fetch('/api/analyze', { method: 'POST', body: formData });
+                        const data = await res.json();
+                        this.jobId = data.jobId;
+                        this.pollStatus();
+                    } catch (e) { alert('Server error'); }
+                    finally { this.loading = false; }
+                },
+
+                async pollStatus() {
+                    const check = async () => {
+                        try {
+                            const res = await fetch(`/api/result/${this.jobId}`);
+                            const data = await res.json();
+                            this.status = data.status;
+                            this.result = data.result;
+                            this.error = data.error;
+
+                            if (this.status === 'completed' || this.status === 'failed') return;
+                            setTimeout(check, 2000);
+                        } catch (e) { setTimeout(check, 2000); }
+                    };
+                    check();
+                }
+            }
+        }
+    </script>
+</body>
+</html>

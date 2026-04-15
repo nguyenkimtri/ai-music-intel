@@ -1,0 +1,7 @@
+bullmq
+redis
+librosa
+numpy
+scipy
+yt-dlp
+sqlalchemy
